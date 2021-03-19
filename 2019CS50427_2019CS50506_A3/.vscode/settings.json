@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "string": "cpp",
+        "iosfwd": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "ostream": "cpp",
+        "exception": "cpp",
+        "complex": "cpp",
+        "valarray": "cpp",
+        "cmath": "cpp"
+    }
+}

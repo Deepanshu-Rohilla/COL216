@@ -1,0 +1,4 @@
+add $t3,$t3,$t5
+mul $t3,$t4,$t5
+addi $t4,$t3,100
+sub $t3,$t8,$v2
