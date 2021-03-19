@@ -1,0 +1,14 @@
+Algorithm findArea(List of coordinates l)
+    area <= 0
+    for i <= 1 to n-1 do
+        (x1,y1) <= l[i]
+        (x2,y2) <= l[i+1]
+        if((y1>0 && y2>0) || (y1<0 && y2<0))
+		    height <= x2-x1
+		    sum <= abs(y1+y2)
+		area <= area +  (sum*height)/2.0
+	
+        else
+            zeroPt <= (x1*y2 - x2*y1)/(y2-y1)
+	        area <= area + ((zeroPt-x1)*abs(y1) + (x2-zeroPt)*abs(y2))/2.0
+    return area
