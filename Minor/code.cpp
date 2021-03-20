@@ -364,8 +364,14 @@ int main(int argc, char** argv){
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                 }
                 else{
-                    numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                    if(registerInConsideration==memory[i+1]){
+                        numberOfClockCycles+=COL_ACCESS_DELAY;
+                    }
+                    else{
+                        numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                    }  
                 }
+                registerInConsideration = memory[i+1];
                 
             }
             // else{
@@ -389,8 +395,14 @@ int main(int argc, char** argv){
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                 }
                 else{
-                    numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                    if(registerInConsideration==memory[i+1]){
+                        numberOfClockCycles+=COL_ACCESS_DELAY;
+                    }
+                    else{
+                        numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                    }  
                 }
+                registerInConsideration = memory[i+1];
                 
             }
             // else{
