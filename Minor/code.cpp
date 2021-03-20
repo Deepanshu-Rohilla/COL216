@@ -70,21 +70,12 @@ void printStats(int numberOfClockCycles, int memory[]){
         cout<<"addi: "<<freqOfCommand[9]<<"\n";
         cout<<"and the total clock cycles taken is: "<<numberOfClockCycles<<"\n";
     }
-    // cout<<"Final data values that are updated during execution:\n";
-    // int si = pow(2,20);
-    // for(int z =0;z<si;z++){
-    //     if(memory[z]!=-1){
-    //         cout<<z<<" ";
-    //         cout<<memory[z]<<"\n";
-    //     }
-    // }
-    
 }
 
 int main(int argc, char** argv){
     string filePath = argv[1];
-    int partNumber = stoi(argv[2]);
-    int ROW_ACCESS_DELAY = stoi(argv[3]);
+    int partNumber = stoi(argv[2]); // Part-1 or Part-2 of the problem
+    int ROW_ACCESS_DELAY = stoi(argv[3]); 
     int COL_ACCESS_DELAY = stoi(argv[4]);
     fstream newfile;
 
@@ -102,6 +93,7 @@ int main(int argc, char** argv){
     
     unordered_map<string,int> instructionNumber;
     unordered_map<string,int> registerNumber;
+    // Integer values representing different instructions
     instructionNumber["add"] = 1;
     instructionNumber["sub"] = 2;
     instructionNumber["mul"] = 3;
@@ -113,6 +105,9 @@ int main(int argc, char** argv){
     instructionNumber["sw"] = 9;
     instructionNumber["addi"] = 10;
 
+    // Integer values representing different register names.
+    // Note that I avoided loop here and mentioned each value separately so that this piece of code also
+    // serves as a look-up table for values that I have given to different registers. 
     registerNumber["$zero"] = 0;
 	registerNumber["$at"] = 1;
 	registerNumber["$v0"] = 2;
@@ -204,12 +199,13 @@ int main(int argc, char** argv){
             }
             // Storing values in memory corresponding to different operators.
             if(l==4){ 
-                r1 = registerNumber[v[1]];
-                r2 = registerNumber[v[2]];
+                r1 = registerNumber[v[1]]; // adding register values to the variables
+                r2 = registerNumber[v[2]]; // adding register values to the variables
                 if(r1<0 || r1>31 || r2<0 || r2>31){
                     cout<<"Invalid register name\n";
                     return 1;
                 }
+                // Adding instruction in memory
                 memory[i1] = command;
                 memory[i1+1] = r1;
                 memory[i1+2] = r2;
@@ -222,7 +218,7 @@ int main(int argc, char** argv){
                 i1 = i1+4;
             }
             else if(l==3){
-                r1 = registerNumber[v[1]];
+                r1 = registerNumber[v[1]]; // adding register values to the variables
                 if(r1<0 || r1>31){
                     cout<<"Invalid register name\n";
                     return 1;
@@ -233,10 +229,7 @@ int main(int argc, char** argv){
                         break;
                     }
                 }
-                cout<<"it is "<<it<<"\n";
-
                 int offset = stoi(v[2].substr(0,it));
-                cout<<"offset is "<<offset<<"\n";
                 if(offset<0 || offset>pow(2,20) || offset%4!=0){
                     cout<<"Invalid memory location access\n";
                     return 1;
@@ -247,6 +240,7 @@ int main(int argc, char** argv){
                     cout<<"Invalid register name\n";
                     return 1;
                 }
+                // Adding instruction in memory
                 memory[i1] = command;
                 memory[i1+1] = r1;
                 memory[i1+2] = r2;
@@ -264,11 +258,6 @@ int main(int argc, char** argv){
                 memory[i1+3] = 0;
                 i1 = i1+4;
             }
-            cout<<"memory i is "<<memory[i1-4]<<"\n";
-            cout<<"memory i+1 is "<<memory[i1-3]<<"\n";
-            cout<<"memory i+2 is "<<memory[i1-2]<<"\n";
-            cout<<"memory i+3 is "<<memory[i1-1]<<"\n";
-            cout<<"\n";
         }
     }
     else{
@@ -295,13 +284,8 @@ int main(int argc, char** argv){
         int c = memory[i];
         switch (c) // Do the computation corresponding to the operator
         {
+            // LOGIC PART BEGINS HERE
         case 1:
-            // if(partNumber==2 && registerInConsideration!=-1){
-            //     if(registerInConsideration==memory[i+1] || registerInConsideration==memory[i+2] || registerInConsideration==memory[i+3]){
-            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-            //         registerInConsideration=-1;
-            //     }
-            // }
             numberOfClockCycles++;
             freqOfCommand[0]++;
             registers[memory[i+1]] = registers[memory[i+2]] + registers[memory[i+3]];
@@ -374,18 +358,9 @@ int main(int argc, char** argv){
                 registerInConsideration = memory[i+1];
                 
             }
-            // else{
-            //     if(registerInConsideration!=-1){
-            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-            //         registerInConsideration=-1;
-            //     }
-                
-            // }
             numberOfClockCycles++;
             freqOfCommand[7]++;
             registers[memory[i+1]] = memory[registers[memory[i+2]] + registers[memory[i+3]]];
-            // registerInConsideration = memory[i+1];
-            // timeSinceInBuffer = numberOfClockCycles;
             i = i+4;
             break;
         case 9:
@@ -405,26 +380,12 @@ int main(int argc, char** argv){
                 registerInConsideration = memory[i+1];
                 
             }
-            // else{
-            //     if(registerInConsideration!=-1){
-            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-            //         registerInConsideration=-1;
-            //     }
-            // }
             numberOfClockCycles++;
             freqOfCommand[8]++;
             memory[registers[memory[i+2]] + registers[memory[i+3]]] = registers[memory[i+1]];
-            // registerInConsideration = memory[i+1];
-            // timeSinceInBuffer = numberOfClockCycles;
             i = i + 4;
             break;
         case 10:
-            // if(partNumber==2 && registerInConsideration!=-1){
-            //     if(registerInConsideration==memory[i+1] || registerInConsideration==memory[i+2]){
-            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-            //         registerInConsideration=-1;
-            //     }
-            // }
             numberOfClockCycles++;
             freqOfCommand[9]++;
             registers[memory[i+1]] = registers[memory[i+2]] + memory[i+3];
