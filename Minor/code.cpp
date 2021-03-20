@@ -284,6 +284,7 @@ int main(int argc, char** argv){
     
     
     int registerInConsideration = -1;
+    int timeSinceInBuffer=-1;
     x = pow(2,20);
     int i=0;
     int numberOfClockCycles=0; 
@@ -295,6 +296,12 @@ int main(int argc, char** argv){
         switch (c) // Do the computation corresponding to the operator
         {
         case 1:
+            // if(partNumber==2 && registerInConsideration!=-1){
+            //     if(registerInConsideration==memory[i+1] || registerInConsideration==memory[i+2] || registerInConsideration==memory[i+3]){
+            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+            //         registerInConsideration=-1;
+            //     }
+            // }
             numberOfClockCycles++;
             freqOfCommand[0]++;
             registers[memory[i+1]] = registers[memory[i+2]] + registers[memory[i+3]];
@@ -352,7 +359,8 @@ int main(int argc, char** argv){
             break;
         case 8:
             if(partNumber==1){
-                if(freqOfCommand[8]+freqOfCommand[9]==0){
+                printRegisters(numberOfClockCycles+1);
+                if(freqOfCommand[7]+freqOfCommand[8]==0){
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                 }
                 else{
@@ -360,17 +368,24 @@ int main(int argc, char** argv){
                 }
                 
             }
-            else{
-
-            }
+            // else{
+            //     if(registerInConsideration!=-1){
+            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+            //         registerInConsideration=-1;
+            //     }
+                
+            // }
             numberOfClockCycles++;
             freqOfCommand[7]++;
             registers[memory[i+1]] = memory[registers[memory[i+2]] + registers[memory[i+3]]];
+            // registerInConsideration = memory[i+1];
+            // timeSinceInBuffer = numberOfClockCycles;
             i = i+4;
             break;
         case 9:
             if(partNumber==1){
-                if(freqOfCommand[8]+freqOfCommand[9]==0){
+                printRegisters(numberOfClockCycles+1);
+                if(freqOfCommand[7]+freqOfCommand[8]==0){
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                 }
                 else{
@@ -378,15 +393,26 @@ int main(int argc, char** argv){
                 }
                 
             }
-            else{
-
-            }
+            // else{
+            //     if(registerInConsideration!=-1){
+            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+            //         registerInConsideration=-1;
+            //     }
+            // }
             numberOfClockCycles++;
             freqOfCommand[8]++;
             memory[registers[memory[i+2]] + registers[memory[i+3]]] = registers[memory[i+1]];
+            // registerInConsideration = memory[i+1];
+            // timeSinceInBuffer = numberOfClockCycles;
             i = i + 4;
             break;
         case 10:
+            // if(partNumber==2 && registerInConsideration!=-1){
+            //     if(registerInConsideration==memory[i+1] || registerInConsideration==memory[i+2]){
+            //         numberOfClockCycles= timeSinceInBuffer + ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+            //         registerInConsideration=-1;
+            //     }
+            // }
             numberOfClockCycles++;
             freqOfCommand[9]++;
             registers[memory[i+1]] = registers[memory[i+2]] + memory[i+3];
