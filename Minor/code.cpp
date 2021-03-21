@@ -258,6 +258,11 @@ int main(int argc, char** argv){
                 memory[i1+3] = 0;
                 i1 = i1+4;
             }
+            cout<<"Memory i is "<<memory[i1-4]<<"\n";
+            cout<<"Memory i+1 is "<<memory[i1-3]<<"\n";
+            cout<<"Memory i+2 is "<<memory[i1-2]<<"\n";
+            cout<<"Memory i+3 is "<<memory[i1-1]<<"\n";
+            cout<<"\n";
         }
     }
     else{
@@ -272,8 +277,9 @@ int main(int argc, char** argv){
     }
     
     
-    int registerInConsideration = -1;
-    int timeSinceInBuffer=-1;
+    bool bufferEngaged=false;
+    int registerInBuffer=-1;
+    int engagedForDuration=-1;
     x = pow(2,20);
     int i=0;
     int numberOfClockCycles=0; 
@@ -286,6 +292,20 @@ int main(int argc, char** argv){
         {
             // LOGIC PART BEGINS HERE
         case 1:
+            if(engagedForDuration==0){
+                engagedForDuration=-1;
+                bufferEngaged=false;
+            }
+            if(partNumber==2 && bufferEngaged){
+                if(registerInBuffer==memory[i+1] || registerInBuffer==memory[i+2] || registerInBuffer==memory[i+3]){
+                    numberOfClockCycles+=engagedForDuration;
+                    engagedForDuration=-1;
+                    bufferEngaged=false;
+                }
+            }
+            if(bufferEngaged){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[0]++;
             registers[memory[i+1]] = registers[memory[i+2]] + registers[memory[i+3]];
@@ -348,15 +368,47 @@ int main(int argc, char** argv){
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                 }
                 else{
-                    if(registerInConsideration==memory[i+1]){
+                    if(registerInBuffer==memory[i+1]){
                         numberOfClockCycles+=COL_ACCESS_DELAY;
                     }
                     else{
                         numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
                     }  
                 }
-                registerInConsideration = memory[i+1];
+                registerInBuffer = memory[i+1];
                 
+            }
+            else{
+                if(freqOfCommand[7]+freqOfCommand[8]==0){
+                    registerInBuffer = memory[i+1];
+                    engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                    bufferEngaged=true;
+                }
+                else{
+                    if(bufferEngaged==false){
+                        if(registerInBuffer==memory[i+1]){ 
+                            engagedForDuration = COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                        else{
+                            registerInBuffer = memory[i+1];
+                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                    }
+                    else{ // wait
+                        numberOfClockCycles+=engagedForDuration;
+                        if(registerInBuffer==memory[i+1]){ 
+                            engagedForDuration = COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                        else{
+                            registerInBuffer = memory[i+1];
+                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                    }
+                }
             }
             numberOfClockCycles++;
             freqOfCommand[7]++;
@@ -370,15 +422,47 @@ int main(int argc, char** argv){
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                 }
                 else{
-                    if(registerInConsideration==memory[i+1]){
+                    if(registerInBuffer==memory[i+1]){
                         numberOfClockCycles+=COL_ACCESS_DELAY;
                     }
                     else{
                         numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
                     }  
                 }
-                registerInConsideration = memory[i+1];
+                registerInBuffer = memory[i+1];
                 
+            }
+           else{
+                if(freqOfCommand[7]+freqOfCommand[8]==0){
+                    registerInBuffer = memory[i+1];
+                    engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                    bufferEngaged=true;
+                }
+                else{
+                    if(bufferEngaged==false){
+                        if(registerInBuffer==memory[i+1]){ 
+                            engagedForDuration = COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                        else{
+                            registerInBuffer = memory[i+1];
+                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                    }
+                    else{ // wait
+                        numberOfClockCycles+=engagedForDuration;
+                        if(registerInBuffer==memory[i+1]){ 
+                            engagedForDuration = COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                        else{
+                            registerInBuffer = memory[i+1];
+                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+                            bufferEngaged=true;
+                        }
+                    }
+                }
             }
             numberOfClockCycles++;
             freqOfCommand[8]++;
@@ -386,6 +470,20 @@ int main(int argc, char** argv){
             i = i + 4;
             break;
         case 10:
+            if(engagedForDuration==0){
+                engagedForDuration=-1;
+                bufferEngaged=false;
+            }
+            if(partNumber==2 && bufferEngaged){
+                if(registerInBuffer==memory[i+1] || registerInBuffer==memory[i+2]){
+                    numberOfClockCycles+=engagedForDuration;
+                    engagedForDuration=-1;
+                    bufferEngaged=false;
+                }
+            }
+            if(bufferEngaged){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[9]++;
             registers[memory[i+1]] = registers[memory[i+2]] + memory[i+3];
@@ -396,6 +494,7 @@ int main(int argc, char** argv){
         }
         printRegisters(numberOfClockCycles);
     }
+    numberOfClockCycles+=engagedForDuration;
     printStats(numberOfClockCycles, memory);
     
     return 0;
