@@ -278,6 +278,8 @@ int main(int argc, char** argv){
     
     
     int rowOfDRAM = -1;
+    int engagedForDuration=0;
+    int registerInDRAM = -1;
     x = pow(2,20);
     int i=0;
     int numberOfClockCycles=0;
@@ -290,6 +292,15 @@ int main(int argc, char** argv){
         {
             // LOGIC PART BEGINS HERE
         case 1:
+            if(registerInDRAM==memory[i+1] || registerInDRAM==memory[i+2] || registerInDRAM==memory[i+3]){
+                if(engagedForDuration>0){
+                    numberOfClockCycles+=engagedForDuration; 
+                    engagedForDuration=0;
+                }
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[0]++;
             registers[memory[i+1]] = registers[memory[i+2]] + registers[memory[i+3]];
@@ -346,22 +357,6 @@ int main(int argc, char** argv){
             i = memory[i+1];
             break;
         case 8:
-            // if(partNumber==1){
-            //     printRegisters(numberOfClockCycles+1);
-            //     if(freqOfCommand[7]+freqOfCommand[8]==0){
-            //         numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
-            //     }
-            //     else{
-            //         if(registerInConsideration==memory[i+1]){
-            //             numberOfClockCycles+=COL_ACCESS_DELAY;
-            //         }
-            //         else{
-            //             numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-            //         }  
-            //     }
-            //     registerInConsideration = memory[i+1];
-                
-            // }
             if(partNumber==1){
                 numberOfClockCycles++; //DRAM Request issued
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
@@ -382,6 +377,28 @@ int main(int argc, char** argv){
                     }
                 }
             }
+            else{
+                if(freqOfCommand[7]+freqOfCommand[8]==0){
+                    // Fresh beginning to the row buffer
+                    numberOfClockCycles++;
+                    rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
+                    engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                }
+                else{
+                    int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
+                    numberOfClockCycles+=engagedForDuration; // prev instruction completed
+                    numberOfClockCycles++; // DRAM request called
+                    if(rowNum==rowOfDRAM){
+                        engagedForDuration = COL_ACCESS_DELAY; // Engaged for new instruction
+                    }
+                    else{ 
+                        rowOfDRAM = rowNum;
+                        // Engaged for new instruction
+                        engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY; 
+                    }
+                }
+            }
+            registerInDRAM = memory[i+1];
             freqOfCommand[7]++;
             registers[memory[i+1]] = memory[registers[memory[i+2]] + memory[i+3]];
             i = i+4;
@@ -407,11 +424,40 @@ int main(int argc, char** argv){
                     }
                 }
             }
+            else{
+                if(freqOfCommand[7]+freqOfCommand[8]==0){
+                    // Fresh beginning to the row buffer
+                    numberOfClockCycles++;
+                    rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
+                    engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                }
+                else{
+                    int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
+                    numberOfClockCycles+=engagedForDuration; // prev instruction completed
+                    numberOfClockCycles++; // DRAM request called
+                    if(rowNum==rowOfDRAM){
+                        engagedForDuration = COL_ACCESS_DELAY; // Engaged for new instruction
+                    }
+                    else{ 
+                        rowOfDRAM = rowNum;
+                        // Engaged for new instruction
+                        engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY; 
+                    }
+                }
+            }
+            registerInDRAM = memory[i+1];
             freqOfCommand[8]++;
             memory[registers[memory[i+2]] + memory[i+3]] = registers[memory[i+1]];
             i = i + 4;
             break;
         case 10:
+            if(engagedForDuration>0 && (registerInDRAM==memory[i+1] || registerInDRAM==memory[i+2])){
+                numberOfClockCycles+=engagedForDuration; 
+                engagedForDuration=0;
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[9]++;
             registers[memory[i+1]] = registers[memory[i+2]] + memory[i+3];
@@ -422,6 +468,7 @@ int main(int argc, char** argv){
         }
         printRegisters(numberOfClockCycles);
     }
+    numberOfClockCycles+=engagedForDuration;
     printStats(numberOfClockCycles, memory);
     
     return 0;
