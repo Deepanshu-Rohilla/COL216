@@ -277,12 +277,10 @@ int main(int argc, char** argv){
     }
     
     
-    bool bufferEngaged=false;
-    int registerInBuffer=-1;
-    int engagedForDuration=-1;
+    int rowOfDRAM = -1;
     x = pow(2,20);
     int i=0;
-    int numberOfClockCycles=0; 
+    int numberOfClockCycles=0;
     while(i<x){
         if(i==-1 || memory[i]==-1){ // Exiting condition for the program
             break;
@@ -292,20 +290,6 @@ int main(int argc, char** argv){
         {
             // LOGIC PART BEGINS HERE
         case 1:
-            if(engagedForDuration==0){
-                engagedForDuration=-1;
-                bufferEngaged=false;
-            }
-            if(partNumber==2 && bufferEngaged){
-                if(registerInBuffer==memory[i+1] || registerInBuffer==memory[i+2] || registerInBuffer==memory[i+3]){
-                    numberOfClockCycles+=engagedForDuration;
-                    engagedForDuration=-1;
-                    bufferEngaged=false;
-                }
-            }
-            if(bufferEngaged){
-                engagedForDuration--;
-            }
             numberOfClockCycles++;
             freqOfCommand[0]++;
             registers[memory[i+1]] = registers[memory[i+2]] + registers[memory[i+3]];
@@ -362,139 +346,82 @@ int main(int argc, char** argv){
             i = memory[i+1];
             break;
         case 8:
+            // if(partNumber==1){
+            //     printRegisters(numberOfClockCycles+1);
+            //     if(freqOfCommand[7]+freqOfCommand[8]==0){
+            //         numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+            //     }
+            //     else{
+            //         if(registerInConsideration==memory[i+1]){
+            //             numberOfClockCycles+=COL_ACCESS_DELAY;
+            //         }
+            //         else{
+            //             numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
+            //         }  
+            //     }
+            //     registerInConsideration = memory[i+1];
+                
+            // }
             if(partNumber==1){
-                printRegisters(numberOfClockCycles+1);
+                numberOfClockCycles++; //DRAM Request issued
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
+                    // Fresh beginning to the row buffer
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                    rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
                 }
                 else{
-                    if(registerInBuffer==memory[i+1]){
+                    cout<<"LOL\n";
+                    int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
+                    if(rowNum==rowOfDRAM){
                         numberOfClockCycles+=COL_ACCESS_DELAY;
+
                     }
                     else{
                         numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-                    }  
-                }
-                registerInBuffer = memory[i+1];
-                
-            }
-            else{
-                if(freqOfCommand[7]+freqOfCommand[8]==0){
-                    registerInBuffer = memory[i+1];
-                    engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
-                    bufferEngaged=true;
-                }
-                else{
-                    if(bufferEngaged==false){
-                        if(registerInBuffer==memory[i+1]){ 
-                            engagedForDuration = COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
-                        else{
-                            registerInBuffer = memory[i+1];
-                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
-                    }
-                    else{ // wait
-                        numberOfClockCycles+=engagedForDuration;
-                        if(registerInBuffer==memory[i+1]){ 
-                            engagedForDuration = COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
-                        else{
-                            registerInBuffer = memory[i+1];
-                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
+                        rowOfDRAM = rowNum;
                     }
                 }
             }
-            numberOfClockCycles++;
             freqOfCommand[7]++;
-            registers[memory[i+1]] = memory[registers[memory[i+2]] + registers[memory[i+3]]];
+            registers[memory[i+1]] = memory[registers[memory[i+2]] + memory[i+3]];
             i = i+4;
             break;
         case 9:
             if(partNumber==1){
-                printRegisters(numberOfClockCycles+1);
+                numberOfClockCycles++; //DRAM Request issued
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
+                    // Fresh beginning to the row buffer
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                    rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
                 }
                 else{
-                    if(registerInBuffer==memory[i+1]){
+                    cout<<"LOL\n";
+                    int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
+                    if(rowNum==rowOfDRAM){
                         numberOfClockCycles+=COL_ACCESS_DELAY;
+
                     }
                     else{
                         numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-                    }  
-                }
-                registerInBuffer = memory[i+1];
-                
-            }
-           else{
-                if(freqOfCommand[7]+freqOfCommand[8]==0){
-                    registerInBuffer = memory[i+1];
-                    engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
-                    bufferEngaged=true;
-                }
-                else{
-                    if(bufferEngaged==false){
-                        if(registerInBuffer==memory[i+1]){ 
-                            engagedForDuration = COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
-                        else{
-                            registerInBuffer = memory[i+1];
-                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
-                    }
-                    else{ // wait
-                        numberOfClockCycles+=engagedForDuration;
-                        if(registerInBuffer==memory[i+1]){ 
-                            engagedForDuration = COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
-                        else{
-                            registerInBuffer = memory[i+1];
-                            engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
-                            bufferEngaged=true;
-                        }
+                        rowOfDRAM = rowNum;
                     }
                 }
             }
-            numberOfClockCycles++;
             freqOfCommand[8]++;
-            memory[registers[memory[i+2]] + registers[memory[i+3]]] = registers[memory[i+1]];
+            memory[registers[memory[i+2]] + memory[i+3]] = registers[memory[i+1]];
             i = i + 4;
             break;
         case 10:
-            if(engagedForDuration==0){
-                engagedForDuration=-1;
-                bufferEngaged=false;
-            }
-            if(partNumber==2 && bufferEngaged){
-                if(registerInBuffer==memory[i+1] || registerInBuffer==memory[i+2]){
-                    numberOfClockCycles+=engagedForDuration;
-                    engagedForDuration=-1;
-                    bufferEngaged=false;
-                }
-            }
-            if(bufferEngaged){
-                engagedForDuration--;
-            }
             numberOfClockCycles++;
             freqOfCommand[9]++;
             registers[memory[i+1]] = registers[memory[i+2]] + memory[i+3];
             i = i+4;
             break;
         default:
-            i=-1;
+            i=-1;   
         }
         printRegisters(numberOfClockCycles);
     }
-    numberOfClockCycles+=engagedForDuration;
     printStats(numberOfClockCycles, memory);
     
     return 0;

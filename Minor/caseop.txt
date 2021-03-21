@@ -1,0 +1,15 @@
+main:
+	addi $t0, $t0, 4
+	addi $t1, $t1, 100
+	sw $t1, 1024($t0)
+	add $t2, $t2, $t0
+	add $t2, $t2, $t0
+	add $t2, $t2, $t0
+	add $t2, $t2, $t0
+	lw $t3, 1024($t0)
+	add $t2, $t2, $t0
+	add $t2, $t2, $t0
+	add $t2, $t2, $t3
+	lw $t4, 1024($t0)
+	lw $t4, 1024($t0)
+exit:
