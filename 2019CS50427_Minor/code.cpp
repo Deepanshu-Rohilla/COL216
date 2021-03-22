@@ -45,14 +45,18 @@ string decToHexa(int n){
 }
 
 void printRegisters(int numberOfClockCycles){
-    cout<<"Cycle number: "<<numberOfClockCycles<<"\n";
+    cout<<"Cycle "<<numberOfClockCycles<<": "<<"\n";
     for(int i=0;i<32;i++){
         cout<<decToHexa(registers[i])<<" ";
     }
     cout<<"\n";
 }
 
-void printStats(int numberOfClockCycles, int memory[]){
+void dramIssueDeclaration(int numberOfClockCycles){
+    cout<<"Cycle "<<numberOfClockCycles<<": DRAM request issued\n";
+}
+
+void printStats(int numberOfClockCycles, int memory[], int bufferUpdate){
     if(numberOfClockCycles==1){
         cout<<"Input file is empty \n";
     }
@@ -69,6 +73,7 @@ void printStats(int numberOfClockCycles, int memory[]){
         cout<<"sw:   "<<freqOfCommand[8]<<"\n";
         cout<<"addi: "<<freqOfCommand[9]<<"\n";
         cout<<"and the total clock cycles taken is: "<<numberOfClockCycles<<"\n";
+        cout<<"and the buffer update count is: "<<bufferUpdate<<"\n";
     }
 }
 
@@ -173,11 +178,13 @@ int main(int argc, char** argv){
                         cnt++;
                     }
                 }
-          }
-
+            }
 
             v.push_back(s);
             int l = v.size();
+            if(l==5){
+                v.erase(v.begin());
+            }
             if(v[0]!=""){
                 command = instructionNumber[v[0].substr(1)];
             }
@@ -258,11 +265,6 @@ int main(int argc, char** argv){
                 memory[i1+3] = 0;
                 i1 = i1+4;
             }
-            cout<<"Memory i is "<<memory[i1-4]<<"\n";
-            cout<<"Memory i+1 is "<<memory[i1-3]<<"\n";
-            cout<<"Memory i+2 is "<<memory[i1-2]<<"\n";
-            cout<<"Memory i+3 is "<<memory[i1-1]<<"\n";
-            cout<<"\n";
         }
     }
     else{
@@ -280,6 +282,7 @@ int main(int argc, char** argv){
     int rowOfDRAM = -1;
     int engagedForDuration=0;
     int registerInDRAM = -1;
+    int bufferUpdate = 0;
     x = pow(2,20);
     int i=0;
     int numberOfClockCycles=0;
@@ -307,18 +310,45 @@ int main(int argc, char** argv){
             i=i+4;
             break;
         case 2:
+            if(registerInDRAM==memory[i+1] || registerInDRAM==memory[i+2] || registerInDRAM==memory[i+3]){
+                if(engagedForDuration>0){
+                    numberOfClockCycles+=engagedForDuration; 
+                    engagedForDuration=0;
+                }
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[1]++;
             registers[memory[i+1]] = registers[memory[i+2]] - registers[memory[i+3]];
             i=i+4;
             break;
         case 3:  
+            if(registerInDRAM==memory[i+1] || registerInDRAM==memory[i+2] || registerInDRAM==memory[i+3]){
+                if(engagedForDuration>0){
+                    numberOfClockCycles+=engagedForDuration; 
+                    engagedForDuration=0;
+                }
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[2]++;
             registers[memory[i+1]] = registers[memory[i+2]] * registers[memory[i+3]];
             i=i+4;
             break;
         case 4:
+            if(registerInDRAM==memory[i+1] || registerInDRAM==memory[i+2]){
+                if(engagedForDuration>0){
+                    numberOfClockCycles+=engagedForDuration; 
+                    engagedForDuration=0;
+                }
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[3]++;
             if(registers[memory[i+1]] == registers[memory[i+2]]){
@@ -330,6 +360,15 @@ int main(int argc, char** argv){
                 break;
             }
         case 5:
+            if(registerInDRAM==memory[i+1] || registerInDRAM==memory[i+2]){
+                if(engagedForDuration>0){
+                    numberOfClockCycles+=engagedForDuration; 
+                    engagedForDuration=0;
+                }
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[4]++;
             if(registers[memory[i+1]] != registers[memory[i+2]]){
@@ -341,6 +380,15 @@ int main(int argc, char** argv){
                 break;
             }
         case 6:
+            if(registerInDRAM==memory[i+2] || registerInDRAM==memory[i+3]){
+                if(engagedForDuration>0){
+                    numberOfClockCycles+=engagedForDuration; 
+                    engagedForDuration=0;
+                }
+            }
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[5]++;
             if(registers[memory[i+2]] < registers[memory[i+3]]){
@@ -352,6 +400,9 @@ int main(int argc, char** argv){
             i=i+4;
             break;
         case 7:
+            if(engagedForDuration>0){
+                engagedForDuration--;
+            }
             numberOfClockCycles++;
             freqOfCommand[6]++;
             i = memory[i+1];
@@ -359,13 +410,14 @@ int main(int argc, char** argv){
         case 8:
             if(partNumber==1){
                 numberOfClockCycles++; //DRAM Request issued
+                dramIssueDeclaration(numberOfClockCycles);
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
                     // Fresh beginning to the row buffer
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                     rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
+                    bufferUpdate++;
                 }
                 else{
-                    cout<<"LOL\n";
                     int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
                     if(rowNum==rowOfDRAM){
                         numberOfClockCycles+=COL_ACCESS_DELAY;
@@ -374,20 +426,24 @@ int main(int argc, char** argv){
                     else{
                         numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
                         rowOfDRAM = rowNum;
+                        bufferUpdate++;
                     }
                 }
             }
             else{
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
                     // Fresh beginning to the row buffer
-                    numberOfClockCycles++;
+                    numberOfClockCycles++; // DRAM request called
+                    dramIssueDeclaration(numberOfClockCycles);
                     rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
                     engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                    bufferUpdate++;
                 }
                 else{
                     int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
                     numberOfClockCycles+=engagedForDuration; // prev instruction completed
                     numberOfClockCycles++; // DRAM request called
+                    dramIssueDeclaration(numberOfClockCycles);
                     if(rowNum==rowOfDRAM){
                         engagedForDuration = COL_ACCESS_DELAY; // Engaged for new instruction
                     }
@@ -395,6 +451,7 @@ int main(int argc, char** argv){
                         rowOfDRAM = rowNum;
                         // Engaged for new instruction
                         engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY; 
+                        bufferUpdate++;
                     }
                 }
             }
@@ -406,42 +463,52 @@ int main(int argc, char** argv){
         case 9:
             if(partNumber==1){
                 numberOfClockCycles++; //DRAM Request issued
+                dramIssueDeclaration(numberOfClockCycles);
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
                     // Fresh beginning to the row buffer
                     numberOfClockCycles+=ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
                     rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
+                    bufferUpdate+=2;
                 }
                 else{
                     cout<<"LOL\n";
                     int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
                     if(rowNum==rowOfDRAM){
                         numberOfClockCycles+=COL_ACCESS_DELAY;
+                        bufferUpdate++;
 
                     }
                     else{
                         numberOfClockCycles+=ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY;
                         rowOfDRAM = rowNum;
+                        bufferUpdate+=2;
                     }
                 }
             }
             else{
                 if(freqOfCommand[7]+freqOfCommand[8]==0){
                     // Fresh beginning to the row buffer
-                    numberOfClockCycles++;
+                    numberOfClockCycles++; // DRAM request called
+                    dramIssueDeclaration(numberOfClockCycles);
                     rowOfDRAM = (registers[memory[i+2]] + memory[i+3])/1024;
                     engagedForDuration = ROW_ACCESS_DELAY + COL_ACCESS_DELAY;
+                    bufferUpdate+=2;
                 }
                 else{
                     int rowNum = (registers[memory[i+2]] + memory[i+3])/1024;
                     numberOfClockCycles+=engagedForDuration; // prev instruction completed
                     numberOfClockCycles++; // DRAM request called
+                    dramIssueDeclaration(numberOfClockCycles);
                     if(rowNum==rowOfDRAM){
                         engagedForDuration = COL_ACCESS_DELAY; // Engaged for new instruction
+                        bufferUpdate++;
                     }
                     else{ 
                         rowOfDRAM = rowNum;
                         // Engaged for new instruction
                         engagedForDuration = ROW_ACCESS_DELAY*2 + COL_ACCESS_DELAY; 
+                        bufferUpdate+=2;
+                        
                     }
                 }
             }
@@ -469,7 +536,7 @@ int main(int argc, char** argv){
         printRegisters(numberOfClockCycles);
     }
     numberOfClockCycles+=engagedForDuration;
-    printStats(numberOfClockCycles, memory);
+    printStats(numberOfClockCycles, memory,bufferUpdate);
     
     return 0;
 }

@@ -1,0 +1,6 @@
+main:
+	addi $t0, $t0, 3
+	sw $t0, 1024($zero)
+	beq $t0, $t1, 20
+	addi $t1, $t1, 1
+	j 8
