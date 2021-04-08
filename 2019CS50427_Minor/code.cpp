@@ -55,6 +55,9 @@ void printRegisters(int numberOfClockCycles){
 void dramIssueDeclaration(int numberOfClockCycles){
     cout<<"Cycle "<<numberOfClockCycles<<": DRAM request issued\n";
 }
+void rowFreeDeclaration(int numberOfClockCycles){
+    cout<<"Cycle "<<numberOfClockCycles<<": DRAM free to use\n";
+}
 
 void printStats(int numberOfClockCycles, int memory[], int bufferUpdate){
     if(numberOfClockCycles==1){
