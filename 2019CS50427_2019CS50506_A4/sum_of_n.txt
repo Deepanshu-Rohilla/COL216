@@ -1,0 +1,11 @@
+main:
+	addi $t0, $t0, 0
+	addi $t1, $t1, 10
+	addi $t2, $t2, 1
+loop:
+	beq $t2, $t1, exit
+	add $t0, $t0, $t2
+	addi $t2, $t2, 1
+	j loop
+exit:
+	add $t0, $t0, $t2

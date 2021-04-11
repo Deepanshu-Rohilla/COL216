@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "vector": "cpp",
+        "set": "cpp",
+        "deque": "cpp",
+        "__split_buffer": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "iosfwd": "cpp",
+        "iostream": "cpp",
+        "unordered_map": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}

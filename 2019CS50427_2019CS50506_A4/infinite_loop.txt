@@ -1,0 +1,8 @@
+main:
+	addi $t0, $t0, 3
+	sw $t0, 1024($zero)
+loop:
+	beq $t0, $t1, exit
+	addi $t1, $t1, 0
+	j loop
+exit:
